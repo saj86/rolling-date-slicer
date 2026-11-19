@@ -1,0 +1,26 @@
+{
+  "visual": {
+    "name": "rollingDateSlicer",
+    "displayName": "Rolling Date Slicer",
+    "guid": "rollingDateSlicer156E2A786D06435A92FC6BDDCEEE5F7B",
+    "visualClassName": "Visual",
+    "version": "1.0.0.0",
+    "description": "Date slicer with a rolling default range (e.g. last 30 days) that is applied every time the report opens.",
+    "supportUrl": "https://github.com/saj86/rolling-date-slicer/issues",
+    "gitHubUrl": "https://github.com/saj86/rolling-date-slicer"
+  },
+  "apiVersion": "5.11.1",
+  "author": {
+    "name": "Rolling Date Slicer",
+    "email": "support@example.com"
+  },
+  "assets": {
+    "icon": "assets/icon.png"
+  },
+  "externalJS": null,
+  "style": "style/visual.less",
+  "capabilities": "capabilities.json",
+  "dependencies": null,
+  "stringResources": [],
+  "version": "1.0.0.0"
+}

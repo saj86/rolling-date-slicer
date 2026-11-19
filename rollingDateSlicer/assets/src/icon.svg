@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">
+  <!-- Rolling Date Slicer icon: calendar with a selected date range + range slider -->
+  <!-- calendar page -->
+  <rect x="2.5" y="2.5" width="15" height="11" rx="1" fill="#FFFFFF" stroke="#605E5C" stroke-width="1"/>
+  <rect x="3" y="3" width="14" height="2" fill="#605E5C"/>
+  <!-- binder rings -->
+  <rect x="6" y="1" width="1" height="3" fill="#605E5C"/>
+  <rect x="13" y="1" width="1" height="3" fill="#605E5C"/>
+  <!-- days: selected range (blue) wraps from week 1 into week 2 -->
+  <rect x="5"  y="7"  width="2" height="2" fill="#C8C6C4"/>
+  <rect x="9"  y="7"  width="2" height="2" fill="#118DFF"/>
+  <rect x="13" y="7"  width="2" height="2" fill="#118DFF"/>
+  <rect x="5"  y="10" width="2" height="2" fill="#118DFF"/>
+  <rect x="9"  y="10" width="2" height="2" fill="#C8C6C4"/>
+  <rect x="13" y="10" width="2" height="2" fill="#C8C6C4"/>
+  <!-- range slider -->
+  <rect x="2" y="17" width="16" height="1" fill="#C8C6C4"/>
+  <rect x="6.5" y="17" width="7" height="1" fill="#118DFF"/>
+  <circle cx="6.5" cy="17.5" r="1.5" fill="#FFFFFF" stroke="#118DFF" stroke-width="1"/>
+  <circle cx="13.5" cy="17.5" r="1.5" fill="#FFFFFF" stroke="#118DFF" stroke-width="1"/>
+</svg>
