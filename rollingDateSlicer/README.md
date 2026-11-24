@@ -73,3 +73,11 @@ in `src/decide.ts`; it is pure and unit-tested.
 ### Latest date (Dates card)
 
 Caps the dates users can see and pick: Last date in the data, Today, Yesterday, Today + N units, or End of the current period. The cap is recalculated daily. Default ranges, typed dates, quick ranges and relative rules are clamped to it. With no selection, no filter is applied, so data after the cap is still included.
+
+### Tile drill-in
+
+Slicer settings › Tiles show › "Drill in (Year › Month › Day)":
+- Each tile selects its dates when clicked, and its › button opens the next level.
+- A breadcrumb goes back up; Show quarters adds a quarter level.
+- On open, and after Reset or Clear, it goes down while one tile holds the whole selection, so the default range is in view.
+- The place is kept while the user picks tiles.

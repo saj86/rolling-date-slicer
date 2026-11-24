@@ -95,7 +95,8 @@ class SlicerCard extends Card {
     tileGranularity = dropdown("tileGranularity", "Tiles show", [
         { value: "month", displayName: "Months" },
         { value: "year", displayName: "Years" },
-        { value: "day", displayName: "Days" }
+        { value: "day", displayName: "Days" },
+        { value: "drill", displayName: "Drill in (Year › Month › Day)" }
     ], "month");
     showBadge = toggle("showBadge", "Show default-range label", false,
         "Shows e.g. \"Last 30 days\" or \"Custom selection\".");
@@ -316,7 +317,7 @@ export class VisualFormattingSettingsModel extends Model {
         s.calendarMode.visible = s.showCalendarIcon.visible && s.showCalendarIcon.value;
         s.granularity.visible = isList;
         s.tileGranularity.visible = isTile;
-        s.showQuarters.visible = isList && view === "tree";
+        s.showQuarters.visible = (isList && view === "tree") || (isTile && s.tileGranularity.value.value === "drill");
         s.singleSelect.visible = isList || isTile;
         s.showSelectAll.visible = isList || isTile;
         s.showSearch.visible = isList;

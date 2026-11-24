@@ -259,6 +259,26 @@
 }
 .rds-caret-spacer { flex: none; width: 18px; }
 
+/* tile drill-in */
+.rds-crumbs {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 4px; flex: none;
+    .rds-crumb { color: var(--rds-accent) !important; text-decoration: underline; }
+    .rds-crumb-sep { opacity: 0.5; }
+    .rds-crumb-current { font-weight: 600; }
+}
+.rds-list.horizontal .rds-tile-group {
+    display: flex; align-items: stretch;
+    border: 1px solid var(--rds-border); border-radius: 3px; overflow: hidden;
+    .rds-item { border: none; border-radius: 0; }
+    .rds-drill {
+        width: auto; height: auto; padding: 0 3px; border-radius: 0;
+        border-left: 1px solid var(--rds-border);
+    }
+    &.checked { border-color: var(--rds-accent); .rds-drill { border-left-color: rgba(255, 255, 255, 0.5); background: var(--rds-accent); color: #fff !important; } }
+    &.partial { border-color: var(--rds-accent); .rds-item { box-shadow: inset 0 -3px 0 var(--rds-accent); } }
+}
+.rds-list.horizontal.days .rds-item { min-width: 30px; justify-content: center; padding: 4px 4px; }
+
 /* ---- dropdown */
 .rds-dropdown-row { display: flex; align-items: center; gap: 4px; flex: none; }
 .rds-dropdown-btn {

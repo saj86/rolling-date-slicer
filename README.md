@@ -130,7 +130,16 @@ Weeks start on the day chosen in **Dates › Week starts on**. The range is alwa
 
 <br clear="right">
 
-### 3.3 Trees and lists
+### 3.3 Tile drill-in
+
+With **Tiles show → Drill in (Year › Month › Day)**:
+- Click a tile to select it.
+- Click its **›** to open it: years → (quarters) → months → days.
+- A breadcrumb (**All › 2026 › November**) takes you back up.
+
+When the report opens, the tiles open at the level that shows the default range. *Last 30 days* opens the months of the year, and *This month* opens that month's days. A tile that is only partly selected has a coloured underline.
+
+### 3.4 Trees and lists
 
 In the Vertical list, Tile and Dropdown styles, the default range is ticked automatically each time the report opens, however many months it covers. The tree opens the years, months or weeks where the range starts and ends, so the edges are visible. Partly selected nodes show a half-filled box.
 
@@ -144,7 +153,7 @@ Choose the style in **Slicer settings › Style**. The rolling default works in 
 | **Before** | One date box: everything up to that date |
 | **After** | One date box: everything from that date on |
 | **Vertical list** | A searchable list or tree of dates with check boxes |
-| **Tile** | Buttons for months, years or days |
+| **Tile** | Buttons for months, years or days, or tiles you drill into: Year › (Quarter) › Month › Day |
 | **Dropdown** | The list or tree inside a dropdown |
 | **Relative date** | "Last / Next / This", a number and a unit |
 | **Date picker** | A quick-range menu (Default, Today, Yesterday, Last 7/30/90 days, This week, This month, Last month, This quarter, Year to date, Last 12 months, All dates, Custom range) above the date boxes |
@@ -172,8 +181,8 @@ Choose the style in **Slicer settings › Style**. The rolling default works in 
 | Show default-range label | A label such as "Last 30 days", or "Custom selection" after a change | Off |
 | Label position | In the header, or in front of the dates (always in front when the header is off) | In the header |
 | View | List/Dropdown: Tree (Year › Month › Day), Tree (Year › ISO week › Day), Days, Months, Years | Tree |
-| Show quarters | Adds a Quarter level to the month tree | Off |
-| Tiles show | Months, Years or Days | Months |
+| Show quarters | Adds a Quarter level to the month tree and to tile drill-in | Off |
+| Tiles show | Months, Years, Days, or Drill in (Year › Month › Day) | Months |
 | Single select | Only one item can be picked | Off |
 | Show "Select all" | The Select all row in lists | On |
 | Show search box | A search box above lists | On |

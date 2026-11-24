@@ -76,6 +76,7 @@ export class Visual implements IVisual {
     private dropdownOpen = false;
     private search = "";
     private fieldName = "";
+    private tileDrill: string[] | null = null;       // tile drill-in path of node keys; null = automatic
     private treeExpanded: Set<string> | null = null; // null = automatic (open where the selection starts/ends)
     private lastOptions: VisualUpdateOptions | null = null;
 
@@ -157,7 +158,10 @@ export class Visual implements IVisual {
         return (this.style === "list" || this.style === "dropdown") && (g === "tree" || g === "treeWeek");
     }
     private gran(): Gran {
-        if (this.style === "tile") return this.settings.slicer.tileGranularity.value.value as Gran;
+        if (this.style === "tile") {
+            const g = this.settings.slicer.tileGranularity.value.value as string;
+            return g === "drill" ? "day" : g as Gran;
+        }
         return (this.style === "list" || this.style === "dropdown")
             && !this.isTree() ? this.settings.slicer.granularity.value.value as Gran : "day";
     }
@@ -300,6 +304,7 @@ export class Visual implements IVisual {
 
     private applyDefault() {
         this.treeExpanded = null;
+        this.tileDrill = null;
         const b = this.defaultFilterBounds(this.defaultRange());
         this.sel = { kind: "range", start: b.start, end: b.end };
         this.isDefault = true;
@@ -410,6 +415,7 @@ export class Visual implements IVisual {
     private userClear() {
         this.popup = null;
         this.treeExpanded = null;
+        this.tileDrill = null;
         this.sel = { kind: "all" };
         this.isDefault = false;
         this.clearFilter();
@@ -913,6 +919,10 @@ export class Visual implements IVisual {
             if (row.childElementCount) container.appendChild(row);
         }
         const selected = this.selectedDays();
+        if (this.style === "tile" && sl.tileGranularity.value.value === "drill") {
+            this.renderTileDrill(container, selected, single);
+            return;
+        }
         const q = this.search.trim().toLowerCase();
         if (this.isTree() && !q) { this.renderTree(container, selected, single); return; }
         const groups = this.groups(this.isTree() ? "day" : this.gran()).filter(g => !q || g.label.toLowerCase().includes(q)
@@ -989,6 +999,89 @@ export class Visual implements IVisual {
             if (open) n.children.forEach(draw);
         };
         roots.forEach(draw);
+        container.appendChild(list);
+    }
+
+    /** Tiles that drill in: Year › (Quarter) › Month › Day, with a breadcrumb to go back up. */
+    private renderTileDrill(container: HTMLElement, selected: Set<number>, single: boolean) {
+        const sl = this.settings.slicer;
+        const roots = buildTree(this.dates, sl.showQuarters.value ? "quarter" : "month", dn => String(ymdFromDn(dn).d));
+        const none = this.sel.kind === "all";
+
+        // Automatic: go down while one tile holds the whole selection, so the default range is in view.
+        let path = this.tileDrill;
+        if (!path) {
+            path = [];
+            let level = roots;
+            while (!none && selected.size) {
+                const hit = level.find(n => n.children.length && n.days.length >= selected.size
+                    && [...selected].every(d => n.days.includes(d)));
+                if (!hit) break;
+                path.push(hit.key);
+                level = hit.children;
+            }
+            // Keep this place while the user picks tiles; it is recomputed after Reset or Clear.
+            this.tileDrill = path;
+        }
+        // Resolve the path; drop the part that no longer exists (e.g. the data changed).
+        const trail: TreeNode[] = [];
+        let nodes = roots;
+        for (const key of path) {
+            const n = nodes.find(x => x.key === key);
+            if (!n || !n.children.length) break;
+            trail.push(n);
+            nodes = n.children;
+        }
+        const isDays = nodes.length > 0 && !nodes[0].children.length;
+        if (isDays) nodes = [...nodes].sort((a, b) => a.days[0] - b.days[0]);
+        const go = (keys: string[]) => { this.tileDrill = keys; this.render(); };
+
+        if (trail.length) {
+            const crumbs = el("div", "rds-crumbs");
+            const crumb = (text: string, keys: string[] | null) => {
+                if (keys) {
+                    const b = document.createElement("button");
+                    b.className = "rds-crumb";
+                    b.textContent = text;
+                    b.addEventListener("click", () => go(keys));
+                    crumbs.appendChild(b);
+                    crumbs.appendChild(el("span", "rds-crumb-sep", "›"));
+                } else {
+                    crumbs.appendChild(el("span", "rds-crumb-current", text));
+                }
+            };
+            crumb("All", []);
+            trail.forEach((n, i) => crumb(n.label, i === trail.length - 1 ? null : trail.slice(0, i + 1).map(x => x.key)));
+            container.appendChild(crumbs);
+        }
+
+        const list = el("div", "rds-list horizontal rds-tiles" + (isDays ? " days" : ""));
+        list.setAttribute("role", "listbox");
+        if (!trail.length && sl.showSelectAll.value && !single) {
+            list.appendChild(this.listItem("Select all", none, false, () => this.userSetList(new Set())));
+        }
+        for (const n of nodes) {
+            const state = none ? "none" : checkState(n, selected);
+            const item = this.listItem(n.label, state === "checked", state === "partial", () => {
+                let next: Set<number>;
+                if (single) next = state === "checked" ? new Set() : new Set(n.days);
+                else {
+                    next = none ? new Set() : new Set(selected);
+                    if (state === "checked") n.days.forEach(d => next.delete(d));
+                    else n.days.forEach(d => next.add(d));
+                }
+                this.userSetList(next);
+            }, single);
+            if (isDays) item.title = this.label(n.days[0]);
+            if (!n.children.length) { list.appendChild(item); continue; }
+            const group = el("div", "rds-tile-group" + (state === "checked" ? " checked" : state === "partial" ? " partial" : ""));
+            group.appendChild(item);
+            const drill = iconButton(ICONS.chevronRight, `Show ${n.label} in detail`,
+                () => go([...trail.map(x => x.key), n.key]), "rds-drill");
+            group.appendChild(drill);
+            list.appendChild(group);
+        }
+        if (!nodes.length) list.appendChild(el("div", "rds-empty", "No dates"));
         container.appendChild(list);
     }
 
