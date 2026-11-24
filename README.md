@@ -248,6 +248,14 @@ When both handles are on the same date, drag left or right to pull the one you n
 
 - **Date format:** 11/19/2026, 19/11/2026, Nov 19, 2026, 11/19/26, November 19, 2026, or 2026-11-19. Typed dates are read in the same order.
 - **Week starts on:** Monday, Sunday or Saturday. The ISO week tree always uses Monday-to-Sunday weeks.
+- **Latest date:** the last date users can see and pick, counted from today, so a date table that runs into future years doesn't stretch the slider:
+  - *Last date in the data* (default);
+  - *Today*;
+  - *Yesterday*;
+  - *Today + N* Days, Weeks, Months, Quarters or Years, for example Today + 1 week;
+  - *End of the current period*, for example the end of this month.
+
+  It is recalculated every day. The slider, lists, trees and calendars stop at that date, and the default range is cut off at it (Next 30 days with Today + 1 week ends one week from today). Clearing the slicer still removes the filter completely.
 
 <br clear="right">
 

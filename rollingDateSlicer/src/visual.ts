@@ -19,7 +19,7 @@ import { buildTree, checkState, autoExpanded, isContiguous, TreeNode } from "./t
 import {
     RangeSpec, RangeType, Unit, DayRange, DateFormat,
     computeRange, describeSpec, dnFromDataValue, dnFromIso, isoFromDn, todayDn,
-    formatDn, groupKey, ymdFromDn, dnFromYMD, daysInMonth, dow, addMonths
+    formatDn, groupKey, ymdFromDn, dnFromYMD, daysInMonth, dow, addMonths, addUnits, startOfUnit
 } from "./dateUtils";
 
 type Style = "between" | "before" | "after" | "list" | "tile" | "dropdown" | "relative" | "datepicker";
@@ -60,7 +60,8 @@ export class Visual implements IVisual {
 
     private initialized = false;
     private target: IFilterColumnTarget | null = null;
-    private dates: number[] = [];
+    private dates: number[] = [];      // dates in the data, up to the latest date allowed
+    private rawDates: number[] = [];   // every date in the data
     private sel: Selection = { kind: "all" };
     private isDefault = false;
     private relSpec: RangeSpec | null = null;
@@ -93,6 +94,7 @@ export class Visual implements IVisual {
             const t = todayDn();
             if (t !== this.lastToday) {
                 this.lastToday = t;
+                if (this.settings) this.applyMaxDate();
                 if (this.settings && this.target && this.isDefault && this.defaultEnabled()) { this.applyDefault(); this.render(); }
             }
         }, 60000);
@@ -124,7 +126,8 @@ export class Visual implements IVisual {
                 const dn = dnFromDataValue(v);
                 if (dn != null) set.add(dn);
             }
-            this.dates = Array.from(set).sort((a, b) => a - b);
+            this.rawDates = Array.from(set).sort((a, b) => a - b);
+            this.applyMaxDate();
 
             this.lastToday = todayDn();
             const incoming = this.parseIncoming(options.jsonFilters as unknown[]);
@@ -170,7 +173,34 @@ export class Visual implements IVisual {
         };
     }
 
-    private defaultRange(): DayRange { return computeRange(this.defaultSpec(), todayDn()); }
+    private defaultRange(): DayRange { return this.clampRange(computeRange(this.defaultSpec(), todayDn())); }
+
+    /** Latest date users can see and pick ("Dates › Latest date"); null = no limit. */
+    private maxDn(): number | null {
+        const d = this.settings.dateFormat;
+        const today = todayDn();
+        const unit = d.maxUnit.value.value as Unit;
+        switch (d.maxDate.value.value as string) {
+            case "today": return today;
+            case "yesterday": return today - 1;
+            case "plus": return addUnits(today, unit, Math.max(1, Math.floor(d.maxCount.value || 1)));
+            case "endOf": return addUnits(startOfUnit(today, unit, this.weekStart()), unit, 1) - 1;
+        }
+        return null;
+    }
+
+    private applyMaxDate() {
+        const cap = this.maxDn();
+        this.dates = cap == null ? this.rawDates : this.rawDates.filter(d => d <= cap);
+    }
+
+    /** Keeps a range on or before the latest date. */
+    private clampRange(r: DayRange): DayRange {
+        const cap = this.maxDn();
+        if (cap == null) return r;
+        const end = Math.min(r.end, cap);
+        return { start: Math.min(r.start, end), end };
+    }
 
     // ------------------------------------------------------ selection logic
 
@@ -258,7 +288,7 @@ export class Visual implements IVisual {
 
     /** Identifies "today's default" for the current style and settings. */
     private defaultKey(): string {
-        return `${todayDn()}|${this.style}|${JSON.stringify(this.defaultSpec())}`;
+        return `${todayDn()}|${this.style}|${JSON.stringify(this.defaultSpec())}|${this.maxDn()}`;
     }
 
     /** Start/end as they appear in the filter for the current style. */
@@ -285,7 +315,7 @@ export class Visual implements IVisual {
 
     private applyRelative(userAction: boolean) {
         if (!this.relSpec) return;
-        const r = computeRange(this.relSpec, todayDn());
+        const r = this.clampRange(computeRange(this.relSpec, todayDn()));
         const d = this.defaultSpec();
         const s = this.relSpec;
         const matchesDefault = this.defaultEnabled() && s.type === d.type && s.count === d.count
@@ -351,6 +381,11 @@ export class Visual implements IVisual {
     // ---- user actions
 
     private userSetRange(start: number | null, end: number | null) {
+        const cap = this.maxDn();
+        if (cap != null) {
+            if (start != null) start = Math.min(start, cap);
+            if (end != null) end = Math.min(end, cap);
+        }
         if (start != null && end != null && start > end) [start, end] = [end, start];
         this.sel = { kind: "range", start, end };
         this.isDefault = false;
@@ -612,7 +647,7 @@ export class Visual implements IVisual {
         else if (cur.start != null && cur.end != null) {
             const hit = presets.find(([k, , sp]) => {
                 if (k === "default" || !sp) return false;
-                const r = computeRange(sp, today);
+                const r = this.clampRange(computeRange(sp, today));
                 return r.start === cur.start && r.end === cur.end;
             });
             if (hit) current = hit[0];
@@ -656,6 +691,10 @@ export class Visual implements IVisual {
             if (this.dates.length) {
                 nat.min = isoFromDn(this.dates[0]).slice(0, 10);
                 nat.max = isoFromDn(this.dates[this.dates.length - 1]).slice(0, 10);
+            }
+            const cap = this.maxDn();
+            if (cap != null && (!nat.max || dnFromIso(nat.max)! > cap)) {
+                nat.max = isoFromDn(cap).slice(0, 10);
             }
             if (value != null) nat.value = isoFromDn(value).slice(0, 10);
             nat.addEventListener("change", () => {
@@ -805,7 +844,14 @@ export class Visual implements IVisual {
                 + (has.has(dn) ? "" : " no-data") + (dn === cur.start || dn === cur.end ? " edge" : "");
             b.textContent = String(d);
             b.title = this.label(dn);
-            b.addEventListener("click", () => { const w = p.which; this.popup = null; this.commitDate(w, dn); });
+            const cap = this.maxDn();
+            if (cap != null && dn > cap) {
+                b.disabled = true;
+                b.classList.add("after-max");
+                b.title = "After the latest date";
+            } else {
+                b.addEventListener("click", () => { const w = p.which; this.popup = null; this.commitDate(w, dn); });
+            }
             grid.appendChild(b);
         }
         cal.appendChild(grid);

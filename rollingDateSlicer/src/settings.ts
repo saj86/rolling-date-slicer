@@ -277,9 +277,19 @@ class DateFormatCard extends Card {
         { value: "6", displayName: "Saturday" }
     ], "1");
 
+    maxDate = dropdown("maxDate", "Latest date", [
+        { value: "data", displayName: "Last date in the data" },
+        { value: "today", displayName: "Today" },
+        { value: "yesterday", displayName: "Yesterday" },
+        { value: "plus", displayName: "Today + N" },
+        { value: "endOf", displayName: "End of the current period" }
+    ], "data");
+    maxCount = num("maxCount", "N", 1, 1);
+    maxUnit = dropdown("maxUnit", "Unit", UNIT_ITEMS, "day");
+
     name = "dateFormat";
     displayName = "Dates";
-    slices: Slice[] = [this.format, this.weekStart];
+    slices: Slice[] = [this.format, this.weekStart, this.maxDate, this.maxCount, this.maxUnit];
 }
 
 export class VisualFormattingSettingsModel extends Model {
@@ -327,6 +337,9 @@ export class VisualFormattingSettingsModel extends Model {
         this.buttons.showReset.visible = this.defaultRange.enabled.value;
         this.buttons.position.visible = hasDates;
         this.header.titleText.visible = this.header.showTitle.value;
+        const maxMode = this.dateFormat.maxDate.value.value as string;
+        this.dateFormat.maxCount.visible = maxMode === "plus";
+        this.dateFormat.maxUnit.visible = maxMode === "plus" || maxMode === "endOf";
         s.showBadge.visible = this.defaultRange.enabled.value;
         // With the header off the label always sits in front of the dates.
         s.badgePosition.visible = s.showBadge.visible && s.showBadge.value && this.header.show.value;

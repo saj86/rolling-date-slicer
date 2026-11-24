@@ -69,3 +69,7 @@ in `src/decide.ts`; it is pure and unit-tested.
 - In Relative style, a user's custom rule (e.g. "Last 7 days") is remembered with Save user changes = On only
   where the visual can save properties (Desktop, or edit mode in the Service).
 - Up to 30,000 distinct dates.
+
+### Latest date (Dates card)
+
+Caps the dates users can see and pick: Last date in the data, Today, Yesterday, Today + N units, or End of the current period. The cap is recalculated daily. Default ranges, typed dates, quick ranges and relative rules are clamped to it. With no selection, no filter is applied, so data after the cap is still included.

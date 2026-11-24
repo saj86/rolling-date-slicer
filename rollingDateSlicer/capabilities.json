@@ -486,6 +486,21 @@
                     "type": {
                         "enumeration": []
                     }
+                },
+                "maxDate": {
+                    "type": {
+                        "enumeration": []
+                    }
+                },
+                "maxCount": {
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "maxUnit": {
+                    "type": {
+                        "enumeration": []
+                    }
                 }
             }
         }
